@@ -35,9 +35,9 @@ public class MenuActivity extends Activity {
             @Override
             public void onClick(View view) {
                 int userId = getIntent().getIntExtra("userid", -1);
-                Intent intent = new Intent(getBaseContext(), OrderActivity.class);
-                intent.putExtra("userid", userId);
-                startActivity(intent);
+                //Intent intent = new Intent(getBaseContext(), OrderActivity.class);
+                //intent.putExtra("userid", userId);
+                //startActivity(intent);
             }
         });
 

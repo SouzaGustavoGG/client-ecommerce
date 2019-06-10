@@ -18,6 +18,7 @@ import app.mobile.ecommerce.ecommerce.model.User;
 public class AccountActivity extends Activity {
 
     private HttpRequest requester;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,7 @@ public class AccountActivity extends Activity {
                         final EditText country = (EditText) findViewById(R.id.editTextCountry);
 
                         Address address = new Address();
+                        address.setId(user.getId());
                         address.setStreet(street.getText().toString());
                         address.setNum(Integer.valueOf(num.getText().toString()));
                         address.setZipCode(zipCode.getText().toString());
@@ -112,7 +114,7 @@ public class AccountActivity extends Activity {
                         null);
 
                 Gson gson = new GsonBuilder().create();
-                User user = gson.fromJson(content,  User.class);
+                user = gson.fromJson(content,  User.class);
 
                 username.setText(user.getUsername());
                 password.setText(user.getPassword());

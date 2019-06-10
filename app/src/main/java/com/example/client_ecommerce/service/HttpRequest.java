@@ -11,7 +11,7 @@ import java.net.URL;
 public class HttpRequest {
 
     private static HttpRequest httpRequest;
-    private static final String URL = "http://192.168.15.6:8081";
+    private static final String URL = "http://192.168.43.92:8081";//"http://192.168.15.26:8081";
     private static final String ENCODING = "UTF-8";
 
     public enum HttpMethod{ GET, POST, PUT, DELETE }

@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -21,10 +22,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 import app.mobile.ecommerce.ecommerce.model.Order;
 import app.mobile.ecommerce.ecommerce.model.Product;
+import app.mobile.ecommerce.ecommerce.model.User;
 
 public class ProductActivity extends Activity {
 
@@ -62,6 +66,53 @@ public class ProductActivity extends Activity {
             }
         };
         t.start();
+
+        final Button postButton = (Button) findViewById(R.id.buttonPostOrder);
+        postButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Runnable runnable1 = new Runnable() {
+                    @Override
+                    public void run() {
+                        int userId = getIntent().getIntExtra("userid", -1);
+
+                        String userContent = requester.doRequest(
+                                "/user/" + userId,
+                                HttpRequest.HttpMethod.GET.name(),
+                                "application/json",
+                                null);
+
+                        Gson gson = new GsonBuilder().create();
+                        User user = gson.fromJson(userContent,  User.class);
+
+                        EcommerceService service = EcommerceService.getInstance();
+                        service.postOrder(user);
+
+                        String jsonBody = new GsonBuilder().create().toJson(service.getOrder());
+                        System.out.println(jsonBody);
+
+                        String content = HttpRequest.getInstance().doRequest(
+                                "/pedido",
+                                HttpRequest.HttpMethod.POST.name(),
+                                "text/plain", jsonBody);
+
+                        if(Boolean.valueOf(content)){
+                            Toast.makeText(ProductActivity.this, "Pedido realizado.", Toast.LENGTH_SHORT).show();
+
+                            service.setOrder(null);
+                        }
+                    }
+                };
+                Thread t1 = new Thread(){
+                    @Override
+                    public void run(){
+                        runOnUiThread(runnable1);
+                    }
+                };
+                t1.start();
+
+            }
+        });
     }
 
     private void addProductsToView(List<Product> products){
@@ -113,6 +164,8 @@ public class ProductActivity extends Activity {
                         public void onClick(DialogInterface dialogInterface, int i) {
                             int quantity = Integer.valueOf(input.getText().toString());
                             EcommerceService.getInstance().addItem(p, quantity);
+
+                            updateViewCart();
                         }
                     });
                     builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -127,6 +180,11 @@ public class ProductActivity extends Activity {
             cardView.addView(buttonAdd);
             ll.addView(cardView);
         }
+    }
+
+    public void updateViewCart(){
+        final TextView total = (TextView) findViewById(R.id.textViewPrice);
+        total.setText("R$" + EcommerceService.getInstance().getOrder().getTotal());
     }
 
 
