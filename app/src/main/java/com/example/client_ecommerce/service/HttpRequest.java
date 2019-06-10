@@ -30,13 +30,14 @@ public class HttpRequest {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(method);
             con.setRequestProperty("Accept", accept);
-            con.setDoOutput(false);
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
 
             if(body != null){
-                try(OutputStream os = con.getOutputStream()) {
-                    byte[] input = body.getBytes("utf-8");
-                    os.write(input, 0, input.length);
-                }
+                con.setDoOutput(true);
+
+                OutputStream os = con.getOutputStream();
+                os.write(body.getBytes(ENCODING));
+                os.close();
             }
 
             isr = new InputStreamReader(con.getInputStream(), ENCODING);
