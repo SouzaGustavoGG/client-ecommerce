@@ -15,6 +15,7 @@ public class EcommerceService {
     private static EcommerceService ecommerceService;
 
     private Order order;
+
     private Map<Product, Item> cart = new HashMap<>();
 
     public static EcommerceService getInstance(){
@@ -61,8 +62,16 @@ public class EcommerceService {
         return this.order;
     }
 
-    public void setOrder(Order order){
+    public void setOrder(Order order) {
         this.order = order;
+    }
+
+    public Map<Product, Item> getCart() {
+        return cart;
+    }
+
+    public void setCart(Map<Product, Item> cart) {
+        this.cart = cart;
     }
 
 

@@ -3,17 +3,20 @@ package com.example.client_ecommerce;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.client_ecommerce.service.HttpRequest;
+import com.example.client_ecommerce.service.HttpResponse;
+import com.example.client_ecommerce.service.ThreadActivity;
 import com.google.gson.GsonBuilder;
 
 import app.mobile.ecommerce.ecommerce.model.User;
 
-public class LoginActivity extends Activity {
+public class LoginActivity extends ThreadActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +38,7 @@ public class LoginActivity extends Activity {
     }
 
     public void doLogin(final String username, final String password){
-        Thread t = new Thread(
-            new Runnable() {
+            final Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
                     User user = new User();
@@ -45,22 +47,31 @@ public class LoginActivity extends Activity {
                     String jsonBody = new GsonBuilder().create().toJson(user);
                     System.out.println(jsonBody);
 
-                    String content = HttpRequest.getInstance().doRequest(
+                    HttpResponse response = HttpRequest.getInstance().doRequest(
                             "/user/login",
                             HttpRequest.HttpMethod.POST.name(),
                             "text/plain", jsonBody);
 
-                    Integer userId = Integer.valueOf(content.replace("\n",""));
-                    if (userId >= 0){
-                        Intent intent = new Intent(getBaseContext(), MenuActivity.class);
-                        intent.putExtra("username", username);
-                        intent.putExtra("userid", userId);
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Usuário ou senha incorretos.", Toast.LENGTH_LONG).show();
+                    if (response.getStatusCode() == 200){
+                        Integer userId = Integer.valueOf(response.getBody().replace("\n",""));
+                        if(userId >=0){
+                            Intent intent = new Intent(getBaseContext(), MenuActivity.class);
+                            intent.putExtra("username", username);
+                            intent.putExtra("userid", userId);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(LoginActivity.this,
+                                    "Usuário ou senha incorretos.", Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
-            });
+            };
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                runOnUiThread(runnable);
+            }
+        };
         t.start();
     }
 }

@@ -9,13 +9,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.client_ecommerce.service.HttpRequest;
+import com.example.client_ecommerce.service.HttpResponse;
+import com.example.client_ecommerce.service.ThreadActivity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.mobile.ecommerce.ecommerce.model.Address;
 import app.mobile.ecommerce.ecommerce.model.User;
 
-public class AccountActivity extends Activity {
+public class AccountActivity extends ThreadActivity {
 
     private HttpRequest requester;
     private User user;
@@ -26,11 +28,6 @@ public class AccountActivity extends Activity {
         setContentView(R.layout.activity_account);
 
         requester = HttpRequest.getInstance();
-
-        if(android.os.Build.VERSION.SDK_INT > 9){
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
 
         getUser();
 
@@ -107,25 +104,26 @@ public class AccountActivity extends Activity {
             public void run() {
                 int userId = getIntent().getIntExtra("userid", -1);
 
-                String content = requester.doRequest(
+                HttpResponse response  = requester.doRequest(
                         "/user/" + userId,
                         HttpRequest.HttpMethod.GET.name(),
                         "application/json",
                         null);
 
-                Gson gson = new GsonBuilder().create();
-                user = gson.fromJson(content,  User.class);
+                if(response.getStatusCode() == 200){
+                    Gson gson = new GsonBuilder().create();
+                    user = gson.fromJson(response.getBody(),  User.class);
 
-                username.setText(user.getUsername());
-                password.setText(user.getPassword());
-                street.setText(user.getAddress().getStreet());
-                num.setText(String.valueOf(user.getAddress().getNum()));
-                extra.setText(user.getAddress().getExtra());
-                zipCode.setText(user.getAddress().getZipCode());
-                city.setText(user.getAddress().getCity());
-                state.setText(user.getAddress().getState());
-                country.setText(user.getAddress().getCountry());
-
+                    username.setText(user.getUsername());
+                    password.setText(user.getPassword());
+                    street.setText(user.getAddress().getStreet());
+                    num.setText(String.valueOf(user.getAddress().getNum()));
+                    extra.setText(user.getAddress().getExtra());
+                    zipCode.setText(user.getAddress().getZipCode());
+                    city.setText(user.getAddress().getCity());
+                    state.setText(user.getAddress().getState());
+                    country.setText(user.getAddress().getCountry());
+                }
             }
         };
 

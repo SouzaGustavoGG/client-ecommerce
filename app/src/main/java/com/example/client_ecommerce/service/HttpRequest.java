@@ -11,7 +11,7 @@ import java.net.URL;
 public class HttpRequest {
 
     private static HttpRequest httpRequest;
-    private static final String URL = "http://192.168.43.92:8081";//"http://192.168.15.26:8081";
+    private static final String URL = "http://192.168.15.26:8081";
     private static final String ENCODING = "UTF-8";
 
     public enum HttpMethod{ GET, POST, PUT, DELETE }
@@ -23,7 +23,8 @@ public class HttpRequest {
         return httpRequest;
     }
 
-    public String doRequest(String path, String method, String accept, String body){
+    public HttpResponse doRequest(String path, String method, String accept, String body){
+        HttpResponse response = new HttpResponse();
         InputStreamReader isr = null;
         try {
             URL url = new URL(URL + path);
@@ -32,7 +33,7 @@ public class HttpRequest {
             con.setRequestProperty("Accept", accept);
             con.setRequestProperty("Content-Type", "application/json; utf-8");
 
-            if(body != null){
+            if(body != null) {
                 con.setDoOutput(true);
 
                 OutputStream os = con.getOutputStream();
@@ -41,7 +42,9 @@ public class HttpRequest {
             }
 
             isr = new InputStreamReader(con.getInputStream(), ENCODING);
-            return Stream.convertInputStreamToString(isr);
+            response.setBody(Stream.convertInputStreamToString(isr));
+            response.setStatusCode(con.getResponseCode());
+            response.setHeaders(con.getHeaderFields());
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -50,7 +53,7 @@ public class HttpRequest {
         } finally {
             Stream.closeAllStreams(isr);
         }
-        return null;
+        return response;
 
     }
 }

@@ -18,19 +18,23 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.example.client_ecommerce.service.EcommerceService;
 import com.example.client_ecommerce.service.HttpRequest;
+import com.example.client_ecommerce.service.HttpResponse;
+import com.example.client_ecommerce.service.ThreadActivity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import org.w3c.dom.Text;
 
+import java.util.HashMap;
 import java.util.List;
 
+import app.mobile.ecommerce.ecommerce.model.Item;
 import app.mobile.ecommerce.ecommerce.model.Order;
 import app.mobile.ecommerce.ecommerce.model.Product;
 import app.mobile.ecommerce.ecommerce.model.User;
 
-public class ProductActivity extends Activity {
+public class ProductActivity extends ThreadActivity{
 
     private HttpRequest requester;
     private int countViews = 0;
@@ -42,20 +46,30 @@ public class ProductActivity extends Activity {
 
         requester = HttpRequest.getInstance();
 
-        if(android.os.Build.VERSION.SDK_INT > 9){
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
+        getProducts();
 
+        final Button postButton = (Button) findViewById(R.id.buttonPostOrder);
+        postButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                postOrder();
+            }
+        });
+    }
+
+    private void getProducts(){
         final Runnable runnable = new Runnable() {
             @Override
             public void run() {
-            String content = requester.doRequest("/product", HttpRequest.HttpMethod.GET.name(), "application/json", null);
-            Gson gson = new GsonBuilder().create();
-            List<Product> products = gson.fromJson(content,  new TypeToken<List<Product>>(){}.getType());
+            HttpResponse response = requester.doRequest(
+                    "/product", HttpRequest.HttpMethod.GET.name(),
+                    "application/json", null);
+            if(response.getStatusCode() == 200){
+                Gson gson = new GsonBuilder().create();
+                List<Product> products = gson.fromJson(response.getBody(),  new TypeToken<List<Product>>(){}.getType());
 
-            addProductsToView(products);
-
+                addProductsToView(products);
+            }
             }
         };
 
@@ -66,53 +80,45 @@ public class ProductActivity extends Activity {
             }
         };
         t.start();
+    }
 
-        final Button postButton = (Button) findViewById(R.id.buttonPostOrder);
-        postButton.setOnClickListener(new View.OnClickListener() {
+    private void postOrder(){
+        final Runnable runnable = new Runnable() {
             @Override
-            public void onClick(View view) {
-                final Runnable runnable1 = new Runnable() {
-                    @Override
-                    public void run() {
-                        int userId = getIntent().getIntExtra("userid", -1);
+            public void run() {
 
-                        String userContent = requester.doRequest(
-                                "/user/" + userId,
-                                HttpRequest.HttpMethod.GET.name(),
-                                "application/json",
-                                null);
+                int userId = getIntent().getIntExtra("userid", -1);
 
-                        Gson gson = new GsonBuilder().create();
-                        User user = gson.fromJson(userContent,  User.class);
+                User user = new User();
+                user.setId(userId);
 
-                        EcommerceService service = EcommerceService.getInstance();
-                        service.postOrder(user);
+                EcommerceService service = EcommerceService.getInstance();
+                service.postOrder(user);
 
-                        String jsonBody = new GsonBuilder().create().toJson(service.getOrder());
-                        System.out.println(jsonBody);
+                String jsonBody = new GsonBuilder().create().toJson(service.getOrder());
+                System.out.println(jsonBody);
 
-                        String content = HttpRequest.getInstance().doRequest(
-                                "/pedido",
-                                HttpRequest.HttpMethod.POST.name(),
-                                "text/plain", jsonBody);
+                HttpResponse response = HttpRequest.getInstance().doRequest(
+                        "/pedido",
+                        HttpRequest.HttpMethod.POST.name(),
+                        "text/plain", jsonBody);
 
-                        if(Boolean.valueOf(content)){
-                            Toast.makeText(ProductActivity.this, "Pedido realizado.", Toast.LENGTH_SHORT).show();
+                if(Boolean.valueOf(response.getBody())){
+                    Toast.makeText(ProductActivity.this, "Pedido realizado.", Toast.LENGTH_SHORT).show();
 
-                            service.setOrder(null);
-                        }
-                    }
-                };
-                Thread t1 = new Thread(){
-                    @Override
-                    public void run(){
-                        runOnUiThread(runnable1);
-                    }
-                };
-                t1.start();
-
+                    service.setOrder(null);
+                    service.setCart(new HashMap<Product, Item>());
+                }
             }
-        });
+        };
+        Thread t = new Thread(){
+            @Override
+            public void run(){
+                runOnUiThread(runnable);
+            }
+        };
+        t.start();
+
     }
 
     private void addProductsToView(List<Product> products){

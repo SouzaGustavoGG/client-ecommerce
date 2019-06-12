@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-public class MenuActivity extends Activity {
+import com.example.client_ecommerce.service.ThreadActivity;
+
+public class MenuActivity extends ThreadActivity {
 
 
 
@@ -35,9 +37,9 @@ public class MenuActivity extends Activity {
             @Override
             public void onClick(View view) {
                 int userId = getIntent().getIntExtra("userid", -1);
-                //Intent intent = new Intent(getBaseContext(), OrderActivity.class);
-                //intent.putExtra("userid", userId);
-                //startActivity(intent);
+                Intent intent = new Intent(getBaseContext(), OrderActivity.class);
+                intent.putExtra("userid", userId);
+                startActivity(intent);
             }
         });
 
