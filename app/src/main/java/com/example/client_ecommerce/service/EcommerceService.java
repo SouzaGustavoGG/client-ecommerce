@@ -16,8 +16,6 @@ public class EcommerceService {
 
     private Order order;
 
-    private Map<Product, Item> cart = new HashMap<>();
-
     public static EcommerceService getInstance(){
         if(ecommerceService == null){
             ecommerceService = new EcommerceService();
@@ -31,30 +29,34 @@ public class EcommerceService {
             order.setItems(new ArrayList<Item>());
         }
 
+        Item item = null;
 
-        Item itemMap = cart.get(p);
-        if(itemMap == null){
-            itemMap = new Item();
-            itemMap.setProduct(p);
-            itemMap.setQuantity(quantity);
-        } else {
-            Integer qtd = itemMap.getQuantity() + quantity;
-            itemMap.setQuantity(qtd);
+        for(Item i : order.getItems()){
+            if(i.getProduct().getSku() == p.getSku()){
+                item = i;
+                break;
+            }
         }
-        cart.put(p, itemMap);
+
+        if(item == null){
+            item= new Item();
+            item.setProduct(p);
+            item.setQuantity(quantity);
+            order.getItems().add(item);
+
+        } else {
+            Integer newQuantity = item.getQuantity() + quantity;
+            item.setQuantity(newQuantity);
+        }
+
 
         Double newTotal = (order.getTotal() == null ? 0 : order.getTotal()) +
-                            (p.getPrice() * itemMap.getQuantity());
+                            (p.getPrice() * item.getQuantity());
         order.setTotal(newTotal);
 
     }
 
     public void postOrder(User user){
-        List<Item> items = new ArrayList<>();
-        for (Item value : cart.values()) {
-            items.add(value);
-        }
-        order.setItems(items);
         order.setUser(user);
     }
 
@@ -65,14 +67,5 @@ public class EcommerceService {
     public void setOrder(Order order) {
         this.order = order;
     }
-
-    public Map<Product, Item> getCart() {
-        return cart;
-    }
-
-    public void setCart(Map<Product, Item> cart) {
-        this.cart = cart;
-    }
-
 
 }

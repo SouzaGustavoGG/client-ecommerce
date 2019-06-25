@@ -2,6 +2,7 @@ package com.example.client_ecommerce;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -48,6 +49,14 @@ public class ProductActivity extends ThreadActivity{
 
         getProducts();
 
+        final Button infoButton = (Button) findViewById(R.id.buttonInfoOrder);
+        infoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getInfoOrder();
+            }
+        });
+
         final Button postButton = (Button) findViewById(R.id.buttonPostOrder);
         postButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,6 +64,14 @@ public class ProductActivity extends ThreadActivity{
                 postOrder();
             }
         });
+    }
+
+    private void getInfoOrder(){
+        Order order = EcommerceService.getInstance().getOrder();
+        if(order != null){
+            Intent intent = new Intent(getBaseContext(), CurrentOrderActivity.class);
+            startActivity(intent);
+        }
     }
 
     private void getProducts(){
@@ -103,11 +120,13 @@ public class ProductActivity extends ThreadActivity{
                         HttpRequest.HttpMethod.POST.name(),
                         "text/plain", jsonBody);
 
-                if(Boolean.valueOf(response.getBody())){
+                if(Boolean.valueOf(response.getBody().replace("\n",""))){
                     Toast.makeText(ProductActivity.this, "Pedido realizado.", Toast.LENGTH_SHORT).show();
 
-                    service.setOrder(null);
-                    service.setCart(new HashMap<Product, Item>());
+                    service.setOrder(null); //limpa pedido
+
+                    finish();
+                    startActivity(getIntent());
                 }
             }
         };
