@@ -1,22 +1,36 @@
 package com.example.client_ecommerce;
 
-import android.app.Activity;
+import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.StrictMode;
+import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 
+import com.example.client_ecommerce.service.DownloadImageTask;
 import com.example.client_ecommerce.service.EcommerceService;
 import com.example.client_ecommerce.service.HttpRequest;
 import com.example.client_ecommerce.service.HttpResponse;
@@ -25,12 +39,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import org.w3c.dom.Text;
-
-import java.util.HashMap;
+import java.io.InputStream;
 import java.util.List;
 
-import app.mobile.ecommerce.ecommerce.model.Item;
 import app.mobile.ecommerce.ecommerce.model.Order;
 import app.mobile.ecommerce.ecommerce.model.Product;
 import app.mobile.ecommerce.ecommerce.model.User;
@@ -39,6 +50,10 @@ public class ProductActivity extends ThreadActivity{
 
     private HttpRequest requester;
     private int countViews = 0;
+
+    private Location currentLocation;
+    private LocationManager locationManager;
+    private LocationListener listener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +79,32 @@ public class ProductActivity extends ThreadActivity{
                 postOrder();
             }
         });
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        listener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                currentLocation = location;
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+                Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(i);
+            }
+
+        };
     }
 
     private void getInfoOrder(){
@@ -112,6 +153,8 @@ public class ProductActivity extends ThreadActivity{
                 EcommerceService service = EcommerceService.getInstance();
                 service.postOrder(user);
 
+                //getLocation();
+
                 String jsonBody = new GsonBuilder().create().toJson(service.getOrder());
                 System.out.println(jsonBody);
 
@@ -120,8 +163,11 @@ public class ProductActivity extends ThreadActivity{
                         HttpRequest.HttpMethod.POST.name(),
                         "text/plain", jsonBody);
 
-                if(Boolean.valueOf(response.getBody().replace("\n",""))){
-                    Toast.makeText(ProductActivity.this, "Pedido realizado.", Toast.LENGTH_SHORT).show();
+                if(response.getStatusCode() == 201){
+                    Toast.makeText(ProductActivity.this,
+                            "Pedido #"+
+                            response.getBody().replace("\n","")+
+                            "realizado", Toast.LENGTH_SHORT).show();
 
                     service.setOrder(null); //limpa pedido
 
@@ -152,6 +198,16 @@ public class ProductActivity extends ThreadActivity{
             cardView.setOrientation(LinearLayout.VERTICAL);
             cardView.setLayoutParams(lparams);
             cardView.setPadding(25,25,25,25);
+
+
+
+            ImageView imageView = new ImageView(ProductActivity.this);
+            imageView.setMaxHeight(50);
+            imageView.setMaxWidth(50);
+
+            new DownloadImageTask(imageView)
+                    .execute(p.getUrl());
+            cardView.addView(imageView);
 
             TextView textViewName = new TextView(ProductActivity.this);
             textViewName.setLayoutParams(lparams);
@@ -212,5 +268,28 @@ public class ProductActivity extends ThreadActivity{
         total.setText("R$" + EcommerceService.getInstance().getOrder().getTotal());
     }
 
+    private void getLocation(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET}
+                        , 10);
+            }
+            return;
+        }
+        //locationManager.requestLocationUpdates("gps", 5000, 0, listener);
+
+        //System.out.println(currentLocation.getLatitude() + "," + currentLocation.getLongitude());
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 10:
+                getLocation();
+                break;
+            default:
+                break;
+        }
+    }
 
 }

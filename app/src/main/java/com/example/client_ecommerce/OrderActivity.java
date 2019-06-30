@@ -108,6 +108,14 @@ public class OrderActivity extends ThreadActivity {
             divider.setPadding(0, 10, 0, 10);
             cardView.addView(divider);
 
+            TextView textViewId = new TextView(OrderActivity.this);
+            textViewId.setLayoutParams(lparams);
+            textViewId.setId(countViews++);
+            textViewId.setText("Pedido "+ o.getId());
+            textViewId.setPadding(10,10,10,10);
+            textViewId.setGravity(Gravity.LEFT);
+            cardView.addView(textViewId);
+
             TextView textViewPrice = new TextView(OrderActivity.this);
             textViewPrice.setLayoutParams(lparams);
             textViewPrice.setId(countViews++);

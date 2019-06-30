@@ -8,8 +8,8 @@
 
     <Button
         android:id="@+id/buttonBuy"
-        android:layout_width="371dp"
-        android:layout_height="47dp"
+        android:layout_width="340dp"
+        android:layout_height="53dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="44dp"
         android:layout_marginEnd="8dp"
@@ -20,27 +20,26 @@
 
     <Button
         android:id="@+id/buttonOrder"
-        android:layout_width="371dp"
-        android:layout_height="47dp"
+        android:layout_width="341dp"
+        android:layout_height="53dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:text="Pedidos"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.481"
+        app:layout_constraintHorizontal_bias="0.49"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonBuy" />
 
     <Button
         android:id="@+id/buttonAccount"
-        android:layout_width="371dp"
-        android:layout_height="47dp"
+        android:layout_width="341dp"
+        android:layout_height="49dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:text="Conta"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonOrder" />
 

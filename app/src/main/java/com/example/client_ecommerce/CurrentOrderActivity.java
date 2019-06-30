@@ -1,17 +1,16 @@
 package com.example.client_ecommerce;
 
 import android.app.Activity;
-import android.content.DialogInterface;
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
+
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 
 import com.example.client_ecommerce.service.EcommerceService;
 import com.example.client_ecommerce.service.HttpRequest;
@@ -19,16 +18,10 @@ import com.example.client_ecommerce.service.HttpResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.security.PrivateKey;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 
 import app.mobile.ecommerce.ecommerce.model.Item;
 import app.mobile.ecommerce.ecommerce.model.Order;
-import app.mobile.ecommerce.ecommerce.model.User;
+
 
 public class CurrentOrderActivity extends Activity {
 
@@ -48,10 +41,9 @@ public class CurrentOrderActivity extends Activity {
 
                 if(id != -1){
                     HttpResponse response  = requester.doRequest(
-                            "/order/" + id,
+                            "/pedido/" + id,
                             HttpRequest.HttpMethod.GET.name(),
-                            "application/json",
-                            null);
+                            "application/json", null);
 
                     if(response.getStatusCode() == 200){
                         Gson gson = new GsonBuilder().create();
@@ -77,9 +69,9 @@ public class CurrentOrderActivity extends Activity {
     }
 
     private void addOrderToView(Order order){
-        final TextView textViewOrderLabel = (TextView) findViewById(R.id.textViewOrderLabel);
-        textViewOrderLabel.setText(textViewOrderLabel.getText().toString() +
-                (order.getId() != null ? " #" + order.getId() : ""));
+        TextView textViewOrderLabel = (TextView) findViewById(R.id.textViewOrderLabel);
+        textViewOrderLabel.setText("Pedido"+
+                (order.getId() != null ? " #" + String.valueOf(order.getId()) : ""));
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.llItems);
         LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(
